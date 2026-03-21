@@ -269,6 +269,164 @@ LAW_CONTENT = {
 - za narushenie poryadka prerivaniya peredach - ot 100 000 do 200 000 rubley.
 
 3. Za povtornye narusheniya razmery shtrafov uvelichivayutsya."""
+        },
+        
+        "11": {
+            "title": "Prava subektov reklamsnoy deyatelnosti",
+            "content": """1. Subekty reklamnoy deyatelnosti imeyut prava, predusmotrennye zakonodatelstvom.
+
+2. Reklamodatel vprave trebovat ot reklamorassprostranyaemlya prekrashcheniya rasprostraneniya reklamy v lyuboe vremya."""
+        },
+        
+        "12": {
+            "title": "Obyazannosti reklamorassprostranyaemlya",
+            "content": """1. Reklamorassprostranyaemly objazan:
+- prekrashchat rasprostranenie reklamy po trebovaniyu reklamodatelya;
+- hranyt dokumenty, podtverzhdayushchie soglasiye na reklamu.
+
+2. Reklamorassprostranyaemly objazan prekrashchat rasprostranenie reklamy v sluchayah, predusmotrennyh zakonom."""
+        },
+        
+        "13": {
+            "title": "Obyazannosti reklamoproducenta",
+            "content": """1. Reklamoproducent objazan hotya by odnim iz privedeniya reklamnoy informatsii k gotovoy dlya rasprostraneniya forme, v tom chisle putem:
+- razmeshcheniya reklamnoy informatsii v sredstvah rasprostraneniya;
+- izgotovleniya atsettentov, plakatov, stendov i inyh predmetov."""
+        },
+        
+        "16": {
+            "title": "Sovmestnaya reklama",
+            "content": """1. Reklama raznyh tovarov,kotorye yavlyayutsya obektami odnoy sdelki, v odnom obekt psevdoobmena ne dopuskayas, esli inoe ne ustanovleno zakonom."""
+        },
+        
+        "17": {
+            "title": "Skrytaya reklama",
+            "content": """1. Skrytaya reklama - reklama, kotoryayavlyayushchayas takovoy v silu svoey spetsifiki i ne osveshchaemayayavlyaetsya reklamoy s ispolzovaniem specialnyh priemov, vynosyaschih ee v ryad ne reklamnyh soobshcheniy."""
+        },
+        
+        "20": {
+            "title": "Reklama na transportnyh sredstvah",
+            "content": """1. Reklama na transportnyh sredstvah dopuskayas tolko na vneshney poverhnosti transportnyh sredstv.
+
+2. Zapreshchaetsya reklama na:
+- skhodah;
+- dveryah;
+- lyukovyh kryshkah transportnyh sredstv."""
+        },
+        
+        "20.1": {
+            "title": "Reklama na territorii transportnogo infrastruktury",
+            "content": """1. Reklama v aerodromah, aeroportah, na vokzalah, v stanciyah i drugih obektah transportnoy infrastruktury reguliruetsya nastoyashchim Federalnym zakonom."""
+        },
+        
+        "22": {
+            "title": "Reklama alkogolnoy produktsii pri distributsii",
+            "content": """1. Pri distributsii alkogolnoy produktsii dopuskayas tolko ta reklama, kotoraya sootvetstvuet trebovaniyam statyi 21 nastoyashchego Federalnogo zakona."""
+        },
+        
+        "23": {
+            "title": "Reklama piva i napitkov, izgotavlivaemyh na ego osnove",
+            "content": """1. Reklama piva i napitkov, izgotavlivaemyh na ego osnove, dopuskayas v teleprogrammah i teleperedachah s 23:00 do 06:00.
+
+2. Reklama piva i napitkov, izgotavlivaemyh na ego osnove, ne dolzhna:
+- soderzhat utverzhdenie o poleznosti alkogolnoy produktsii;
+- obrashchatsya k nesovershennoletnim."""
+        },
+        
+        "25": {
+            "title": "Reklama biologicheski aktivnyh dobavok k pischam",
+            "content": """1. Reklama biologicheski aktivnyh dobavok k pischam (BAD) ne dolzhna:
+- soderzhat utverzhdenie o tom, chto oni yavlyayutsya lekarstvennymi sredstvami;
+- soderzhat ssylki na lekarstvennye sredstva.
+
+2. Reklama BAD dolzhna soderzhat informatsiyu o tom, chto produktsiya ne yavlyaetsya lekarstvom."""
+        },
+        
+        "25.1": {
+            "title": "Reklama metodov lecheniya, meditsinskoy tekhniki",
+            "content": """1. Reklama metodov lecheniya, meditsinskoy tekhniki dolzhna soderzhat informatsiyu o napravlennosti, sposobe, effektivnosti i protivopokazaniyah.
+
+2. Zapreshchaetsya reklama metodov lecheniya, ne imeyushchih dokazannoy effektivnosti."""
+        },
+        
+        "26": {
+            "title": "Reklama produktsii i tovarov s ekspluatatsionnoy opasnostyu",
+            "content": """1. Reklama produktsii i tovarov, predstavlyayushchih opasnost dlya zhizni ili zdorovya, dolzhna soderzhat preduprezhdayushchuyu informatsiyu."""
+        },
+        
+        "27": {
+            "title": "Reklama produktsii detskogo pitaniya",
+            "content": """1. Reklama produktsii detskogo pitaniya ne dolzhna:
+- soderzhat utverzhdenie o preimushchestvah pered gruntomym molokom;
+- obrashchatsya k nesovershennoletnim."""
+        },
+        
+        "29": {
+            "title": "Reklama osnovnogo i srednego professionalnogo obrazovaniya",
+            "content": """1. Reklama obrazovatelnyh programm nachalnogo i srednego professionalnogo obrazovaniya ne dolzhna:
+- soderzhat garantii trudoustroystva vypusknikov;
+- soderzhat nepravdivye svedeniya o usloviyah priyoma."""
+        },
+        
+        "30": {
+            "title": "Reklama uslug po podboru personala",
+            "content": """1. Reklama uslug po podboru personala dolzhna soderzhat:
+- naimenovanie organizatsii;
+- adres;
+- nomer litsenzii (esli litsenziya trebuetsya)."""
+        },
+        
+        "31": {
+            "title": "Samoreguliruemye organizatsii v sfere reklamy",
+            "content": """1. Samoreguliruemye organizatsii (SRO) v sfere reklamy - dobrovolnye obshchestvennye organizatsii.
+
+2. SRO utverzhdayut standarty reklamnoy deyatelnosti."""
+        },
+        
+        "32": {
+            "title": "Prava samoreguliruemyh organizatsiy",
+            "content": """1. SRO vprave:
+- razrabatyvat standarty reklamnoy deyatelnosti;
+- osushchestvlyat kontroly za ih soblyudeniem;
+- primenyat mery vozdeystviya k narushitelyam."""
+        },
+        
+        "34": {
+            "title": "Predpisanie antimonopolnogo organa",
+            "content": """1. Predpisanie antimonopolnogo organa vidayotsya v sluchae, esli:
+- reklama ne sootvetstvuet trebovaniyam zakona;
+- reklamodatel ne ispolnil trebovaniya k reklame."""
+        },
+        
+        "35": {
+            "title": "Prekrashchenie narushennoy reklamy",
+            "content": """1. Antimonopolnyy organ vprave napravlyat trebovaniya o prekrashchenii narushennoy reklamy.
+
+2. Predpisanie o prekrashchenii reklama mozhet bit vyneseno v techenie goda s momenta ee rasprostraneniya."""
+        },
+        
+        "35.1": {
+            "title": "Otpoved za narushenie zakonodatelstva o reklame v internete",
+            "content": """1. Za narushenie zakonodatelstva o reklame v Internete primenyayutsya shatfy, predusmotrennye KoAP RF.
+
+2. Vladeets sayta objazan udalyat informatsiyu po trebovaniyu antimonopolnogo organa."""
+        },
+        
+        "37": {
+            "title": "Rassmotrenie del o narusheniyah zakonodatelstva o reklame",
+            "content": """1. Dela o narusheniyah zakonodatelstva o reklame rassmatrivayutsya v poriadke, ustanovlennom zakonodatelstvom ob administrativnyh pravonarusheniyah."""
+        },
+        
+        "39": {
+            "title": "Perekhodnye polozheniya",
+            "content": """1. Deystviya lic, poluchivshih razresheniya na ustanovku reklamnyh konstruktsiy do vstupleniya v silu nastoyashchego Federalnogo zakona, sohranyayut silu."""
+        },
+        
+        "40": {
+            "title": "Vstuplenie v silu nastoyashchego Federalnogo zakona",
+            "content": """1. Nastoyashchiy Federalnyy zakon vstupaet v silu po istechenii desyati dney so dnya ego ofitsialnogo opublikovaniya.
+
+2. Statya 21 vstupaet v silu s 1 yanvarya 2013 goda."""
         }
     }
 }
