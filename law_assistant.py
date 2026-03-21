@@ -1,21 +1,19 @@
 """
-Legal Assistant for Russian Federal Law "On Advertising" (38-FZ)
-Interactive mode for answering questions about the law
+Legal Assistant for FZ "O Reklame" (38-FZ)
+Interactive mode for questions about the law and text checking
 """
 
 from law_data import (
-    get_article, 
-    get_chapter, 
-    search_in_law, 
-    get_law_structure,
+    get_article,
+    get_chapter,
+    search_in_law,
     semantic_search,
     get_best_match,
     LAW_CONTENT
 )
-from vision_module import VisionAnalyzer, analyze_image
+from check_text import check_text_simple, check_text
 import re
 import sys
-import os
 
 
 def parse_question(question: str) -> str:
@@ -65,38 +63,11 @@ def parse_question(question: str) -> str:
             if article_data:
                 return format_article_response(art_num, article_data)
     
-    if "chto takoe" in question or "opredelenie" in question:
-        results = search_in_law("reklama ponyatie")
-        if results:
-            return format_search_results(results, "opredeleniyu reklamy")
-    
-    if "zapret" in question or "nelzya" in question:
-        article_data = get_article("5")
-        if article_data:
-            return format_article_response("5", article_data)
-    
     best_match = get_best_match(question)
     if best_match and best_match["score"] >= 3:
         return format_semantic_result(best_match)
     
-    return "Ne udalos opredelit temu voprosa. Poprobujte utochnit zapros ili ispolzuyte nomer statyi (naprimer: statya 15)."
-
-
-def format_semantic_result(result: dict) -> str:
-    matched_info = ""
-    if result.get("matched"):
-        matched_info = f"\nNaidenno po klyuchevym slovam: {', '.join(result['matched'][:5])}"
-    
-    return f"""
-SEMANTICHESKIY POISK NAYDEN:
-
-=== STATYA {result['article']}: {result['title']} ==={matched_info}
-
-{result['content']}
-
----
-Istochnik: FZ 38-FZ "O reklame"
-"""
+    return "Ne udalos opredelit temu. Ispolzuyte /check <tekst> dlya proverki teksta na FZ."
 
 
 def format_article_response(art_num: str, article_data: dict) -> str:
@@ -127,153 +98,119 @@ Istochnik: FZ 38-FZ "O reklame"
 """
 
 
-def format_search_results(results: list, topic: str) -> str:
-    if not results:
-        return f"Po teme '{topic}' informatsiya ne najdena v lokalnoy baze."
+def format_semantic_result(result: dict) -> str:
+    matched_info = ""
+    if result.get("matched"):
+        matched_info = f"\nNaidenno po: {', '.join(result['matched'][:5])}"
     
-    text = f"\nRezultaty poiska po teme: {topic}\n\n"
-    
-    for i, result in enumerate(results[:3], 1):
-        text += f"{i}. Statya {result['article']}: {result['title']}\n"
-        text += f"   {result['content'][:300]}...\n\n"
-    
-    text += "---"
-    return text
+    return f"""
+SEMANTICHESKIY POISK:
+
+=== STATYA {result['article']}: {result['title']} ==={matched_info}
+
+{result['content']}
+
+---
+Istochnik: FZ 38-FZ "O reklame"
+"""
+
+
+def handle_check_command(text: str) -> str:
+    """Proverka teksta na sootvetstvie FZ"""
+    return check_text_simple(text)
 
 
 def answer_question(question: str) -> str:
-    answer = parse_question(question)
-    return answer
-
-
-def handle_image_command(args: list) -> str:
-    """Obrabotka komandy analiz izobrazheniya"""
-    if not args:
-        return "Ukazhite put k izobrazheniyu: /image <put_k_faylu>"
-    
-    image_path = " ".join(args)
-    
-    if not os.path.exists(image_path):
-        return f"Fayl ne najden: {image_path}"
-    
-    analyzer = VisionAnalyzer()
-    result = analyzer.analyze_advertisement(image_path)
-    
-    output = "\n" + "=" * 60 + "\n"
-    output += "ANALIZ IZOBRAZHENIYA (OCR + PROVERKA NA NARUSHENIYA)\n"
-    output += "=" * 60 + "\n\n"
-    
-    output += "Raspoznannyy tekst:\n"
-    output += "-" * 40 + "\n"
-    text = result.get("recognized_text", "")
-    if text:
-        output += text[:1000] + ("..." if len(text) > 1000 else "") + "\n\n"
-    else:
-        output += "[Tekst ne raspoznan]\n\n"
-    
-    if result["found_categories"]:
-        output += "Naydennye kategorii:\n"
-        output += "-" * 40 + "\n"
-        for cat in result["found_categories"]:
-            output += f"  - {cat}\n"
-        output += "\n"
-    
-    if result["potential_issues"]:
-        output += "POTENTSIALNYE NARUSHENIYA:\n"
-        output += "-" * 40 + "\n"
-        for issue in result["potential_issues"]:
-            output += f"  ! {issue}\n"
-        
-        if result["related_articles"]:
-            output += "\nRekomendatsii (statyi FZ):\n"
-            for art in result["related_articles"]:
-                art_num = re.search(r'\d+', art)
-                if art_num:
-                    art_data = get_article(art_num.group())
-                    if art_data:
-                        output += f"\n--- Statya {art_num.group()}: {art_data['title']} ---\n"
-                        output += art_data["content"][:300] + "...\n"
-    else:
-        output += "Narusheniy ne vyyavleno.\n"
-    
-    return output
+    return parse_question(question)
 
 
 def main():
     if len(sys.argv) > 1:
         first_arg = sys.argv[1].lower()
         
-        if first_arg == "/image" or first_arg == "/img":
-            result = handle_image_command(sys.argv[2:])
-            print(result)
-            return
+        if first_arg == "/check":
+            text = " ".join(sys.argv[2:])
+            if text:
+                return handle_check_command(text)
+            return "Ukazhite tekst dlya proverki: /check <tekst>"
         
-        question = " ".join(sys.argv[1:])
-        answer = answer_question(question)
+        if first_arg == "/help":
+            return get_help()
+        
+        if first_arg.startswith("/"):
+            return f"Neponyatnaya komanda: {first_arg}. Ispolzuyte /help"
+        
+        answer = answer_question(" ".join(sys.argv[1:]))
         print(answer)
         return
     
     print("=" * 60)
-    print("Legal Assistant - FZ 'O reklame' (38-FZ)")
+    print("Legal Assistant - FZ 'O Reklame' (38-FZ)")
     print("=" * 60)
     print()
     print("Dostupnye komandy:")
-    print("  statya N        - statya zakona (naprimer: statya 5)")
-    print("  glava N         - struktura glavy (naprimer: glava 3)")
-    print("  shtrafy         - otvetstvennost i shtrafy")
-    print("  alkogol         - reklama alkogolya")
-    print("  internet        - reklama v internete")
-    print("  finans          - reklama finansovyh uslug")
-    print("  lekarstv        - reklama lekarstv")
-    print("  /image <fayl>   - analiz izobrazheniya (OCR)")
-    print("  pomoshch        - spisok dostupnyh statey")
-    print("  vihod           - vyhod iz programmy")
+    print("  /check <tekst>     - Proverka teksta na narusheniya FZ")
+    print("  statya N           - Tekst statyi (primer: statya 5)")
+    print("  glava N            - Struktura glavy (primer: glava 3)")
+    print("  shtrafy, alkogol   - Temu zakona")
+    print("  /help              - Spisok komand")
     print()
-    print("Vvedite vash vopros:")
+    print("Vvedite /check <tekst> dlya proverki reklama na FZ:")
     print("-" * 60)
     
     while True:
         try:
-            question = input("\nVy: ").strip()
+            user_input = input("\nVy: ").strip()
             
-            if not question:
+            if not user_input:
                 continue
             
-            if question.lower() in ["vyhod", "exit", "quit"]:
+            if user_input.lower() in ["vyhod", "exit", "quit"]:
                 print("Dosvidaniya!")
                 break
             
-            if question.lower() == "pomosch":
-                print("\nDostupnye temy:")
-                print("  statya 5      - Obshchie trebovaniya k reklame")
-                print("  statya 14     - Reklama v televidenii")
-                print("  statya 18     - Reklama po SMS i email")
-                print("  statya 18.1   - Reklama v internete")
-                print("  statya 19     - Naruzhnaya reklama")
-                print("  statya 21     - Reklama alkogolya")
-                print("  statya 24     - Reklama lekarstv")
-                print("  statya 28     - Reklama finansovyh uslug")
-                print("  statya 33     - Polnomochiya FAS")
-                print("  statya 38     - Shtrafy i otvetstvennost")
-                print("  glava 3       - Vse statyi glavy 3")
-                print()
-                print("Analiz izobrazheniy:")
-                print("  /image put/k/faylu.png - raspoznat tekst i proverit na narusheniya")
+            if user_input.lower() == "/help":
+                print(get_help())
                 continue
             
-            if question.startswith("/image ") or question.startswith("/img "):
-                parts = question.split(" ", 1)
-                image_result = handle_image_command([parts[1]])
-                print(image_result)
-                continue
-            
-            print()
-            answer = answer_question(question)
-            print(answer)
+            if user_input.startswith("/check "):
+                text = user_input[7:]
+                print(handle_check_command(text))
+            elif user_input.startswith("/"):
+                print(f"Neponyatnaya komanda. Ispolzuyte /help")
+            else:
+                print(parse_question(user_input))
             
         except KeyboardInterrupt:
             print("\n\nDosvidaniya!")
             break
+
+
+def get_help() -> str:
+    return """
+=== POMOSCH ===
+
+Komandy:
+  /check <tekst>  - Proverit tekst na narusheniya FZ
+                    Primer: /check Kupite vodku so skidkoy!
+
+  statya N        - Pokazat tekst statyi
+                    Primer: statya 21
+
+  glava N          - Pokazat strukturu glavy
+                    Primer: glava 3
+
+Temy (vvedite slovo):
+  shtrafy          - Shtrafy za narusheniya
+  alkogol          - Pravila reklamy alkogolya
+  internet         - Reklama v internete
+  finans           - Reklama finansovyh uslug
+  lekarstv         - Reklama lekarstv
+  deti             - Zashchita nesovershennoletnih
+
+Primer proverki teksta:
+  /check Besplatnye lekarstva tolko u nas!
+"""
 
 
 if __name__ == "__main__":
