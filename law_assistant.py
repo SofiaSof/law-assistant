@@ -12,7 +12,7 @@ from law_data import (
     get_best_match,
     LAW_CONTENT
 )
-from ocr_module import OCRProcessor, analyze_image, extract_text
+from vision_module import VisionAnalyzer, analyze_image
 import re
 import sys
 import os
@@ -156,7 +156,8 @@ def handle_image_command(args: list) -> str:
     if not os.path.exists(image_path):
         return f"Fayl ne najden: {image_path}"
     
-    result = analyze_image(image_path)
+    analyzer = VisionAnalyzer()
+    result = analyzer.analyze_advertisement(image_path)
     
     output = "\n" + "=" * 60 + "\n"
     output += "ANALIZ IZOBRAZHENIYA (OCR + PROVERKA NA NARUSHENIYA)\n"
@@ -164,13 +165,17 @@ def handle_image_command(args: list) -> str:
     
     output += "Raspoznannyy tekst:\n"
     output += "-" * 40 + "\n"
-    output += result["recognized_text"] + "\n\n"
+    text = result.get("recognized_text", "")
+    if text:
+        output += text[:1000] + ("..." if len(text) > 1000 else "") + "\n\n"
+    else:
+        output += "[Tekst ne raspoznan]\n\n"
     
-    if result["found_keywords"]:
+    if result["found_categories"]:
         output += "Naydennye kategorii:\n"
         output += "-" * 40 + "\n"
-        for cat, kw in result["found_keywords"]:
-            output += f"  - {cat}: {kw}\n"
+        for cat in result["found_categories"]:
+            output += f"  - {cat}\n"
         output += "\n"
     
     if result["potential_issues"]:
@@ -179,14 +184,15 @@ def handle_image_command(args: list) -> str:
         for issue in result["potential_issues"]:
             output += f"  ! {issue}\n"
         
-        for issue in result["potential_issues"]:
-            if "statya" in issue.lower():
-                match = re.search(r'statya\s*(\d+(?:\.\d+)?)', issue.lower())
-                if match:
-                    art_data = get_article(match.group(1))
+        if result["related_articles"]:
+            output += "\nRekomendatsii (statyi FZ):\n"
+            for art in result["related_articles"]:
+                art_num = re.search(r'\d+', art)
+                if art_num:
+                    art_data = get_article(art_num.group())
                     if art_data:
-                        output += f"\n--- Rekomendatsiya (Statya {match.group(1)}) ---\n"
-                        output += art_data["content"][:500] + "...\n"
+                        output += f"\n--- Statya {art_num.group()}: {art_data['title']} ---\n"
+                        output += art_data["content"][:300] + "...\n"
     else:
         output += "Narusheniy ne vyyavleno.\n"
     

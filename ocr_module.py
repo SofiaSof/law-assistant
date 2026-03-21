@@ -1,6 +1,6 @@
 """
-OCR Module for Law Assistant
-Modul analiziruet izobrazheniya dlya poiska narusheniy v reklame
+OCR and Vision Module for Law Assistant
+Ispolzuet Tesseract dlya OCR i BLIP dlya opisaniya izobrazheniy
 """
 
 import os
@@ -9,11 +9,53 @@ from PIL import Image
 import io
 
 
+class VisionModule:
+    def __init__(self):
+        self.blip_processor = None
+        self.blip_model = None
+        self.blip_loaded = False
+        self._load_blip()
+    
+    def _load_blip(self):
+        """Zagruzit BLIP model dlya opisaniya izobrazheniy"""
+        try:
+            print("Zagruzka modeli BLIP dlya opisaniya izobrazheniy...")
+            from transformers import BlipProcessor, BlipForConditionalGeneration
+            
+            self.blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+            self.blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+            self.blip_loaded = True
+            print("BLIP uspeshno zagruzhen!")
+        except Exception as e:
+            print(f"BLIP ne mozhet byt zagruzhen: {e}")
+            print("Budet ispolzovalsya tolko OCR.")
+            self.blip_loaded = False
+    
+    def describe_image(self, image_path: str) -> str:
+        """Opisanie izobrazheniya ispolzuya BLIP"""
+        if not self.blip_loaded:
+            return "[Model opisaniya izobrazheniy ne zagruzhen]"
+        
+        try:
+            from transformers import BlipProcessor, BlipForConditionalGeneration
+            
+            image = Image.open(image_path).convert('RGB')
+            
+            inputs = self.blip_processor(image, return_tensors="pt")
+            out = self.blip_model.generate(**inputs)
+            description = self.blip_processor.decode(out[0], skip_special_tokens=True)
+            
+            return description
+        except Exception as e:
+            return f"[Oshibka opisaniya: {str(e)}]"
+
+
 class OCRProcessor:
     def __init__(self):
         self.ocr_available = False
         self.tesseract_path = None
         self.tessdata_dir = None
+        self.vision = VisionModule()
         self._find_tesseract()
     
     def _find_tesseract(self):
@@ -45,7 +87,7 @@ class OCRProcessor:
                 print(f"Tesseract found: {tesseract_exe}")
                 return
         
-        print("Tesseract ne najden. Skachayte: https://github.com/UB-Mannheim/tesseract/releases")
+        print("Tesseract ne najden.")
     
     def extract_text_from_image(self, image_path: str) -> str:
         """Izвлечь текст iz izobrazheniya"""
@@ -54,7 +96,7 @@ class OCRProcessor:
         
         try:
             if not self.tesseract_path:
-                return self._get_install_instructions()
+                return "[Tesseract ne ustanovlen]"
             
             import subprocess
             
@@ -81,35 +123,24 @@ class OCRProcessor:
             if result.returncode == 0 and result.stdout:
                 return result.stdout.strip()
             else:
-                error_msg = result.stderr.decode('utf-8', errors='ignore') if result.stderr else ""
-                return f"Oshibka Tesseract: {error_msg}"
+                error_msg = result.stderr if result.stderr else ""
+                return f"[Tesseract oshibka: {error_msg}]"
             
         except Exception as e:
-            return f"Oshibka OCR: {str(e)}"
+            return f"[Oshibka OCR: {str(e)}]"
     
-    def _get_install_instructions(self) -> str:
-        """Poluchit instrukcii po ustanovke OCR"""
-        return """
-[OCR ne ustanovlen]
-
-Dlya raspoznavaniya teksta ustanovite Tesseract OCR:
-
-1. Skachayte: https://github.com/UB-Mannheim/tesseract/wiki
-2. Ustanovite s russkim yazykovym paketom
-3. Dobavte v sistemnyy PATH
-
-Ili v Windows:
-  winget install Google.TesseractOCR
-
-Posle ustanovki perezapustite programmu.
-"""
+    def describe_image_content(self, image_path: str) -> str:
+        """Opisat soderzhimoe izobrazheniya (chto na kartinke)"""
+        return self.vision.describe_image(image_path)
     
     def analyze_advertisement(self, image_path: str) -> dict:
         """Analiz reklamy na izobrazhenii"""
         text = self.extract_text_from_image(image_path)
+        description = self.describe_image_content(image_path)
         
         result = {
             "recognized_text": text,
+            "image_description": description,
             "found_keywords": [],
             "potential_issues": [],
             "recommendations": []
@@ -156,13 +187,19 @@ def analyze_image(image_path: str) -> dict:
 
 
 def extract_text(image_path: str) -> str:
-    """Izвleчь tekst"""
+    """Izвлечь tekst"""
     ocr = OCRProcessor()
     return ocr.extract_text_from_image(image_path)
 
 
+def describe_image(image_path: str) -> str:
+    """Opisat izobrazhenie"""
+    ocr = OCRProcessor()
+    return ocr.describe_image_content(image_path)
+
+
 if __name__ == "__main__":
-    print("OCR Module - Pravila reklamy")
+    print("OCR + Vision Module - Pravila reklamy")
     print("-" * 40)
     
     if len(sys.argv) > 1:
@@ -170,8 +207,16 @@ if __name__ == "__main__":
         print(f"Analiz: {image_path}")
         
         ocr = OCRProcessor()
-        result = ocr.analyze_advertisement(image_path)
         
-        print("\nTekst:", result["recognized_text"][:500])
-        print("\nKategorii:", result["found_keywords"])
-        print("Problemy:", result["potential_issues"])
+        print("\n1. Opisanie izobrazheniya (chto na kartinke):")
+        desc = ocr.describe_image_content(image_path)
+        print(f"   {desc}")
+        
+        print("\n2. Raspoznannyy tekst:")
+        text = ocr.extract_text_from_image(image_path)
+        print(f"   {text[:500] if text else 'Tekst ne najden'}")
+        
+        print("\n3. Analiz na narusheniya:")
+        result = ocr.analyze_advertisement(image_path)
+        print(f"   Kategorii: {result['found_keywords']}")
+        print(f"   Problemy: {result['potential_issues']}")
