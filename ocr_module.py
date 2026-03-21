@@ -12,31 +12,40 @@ import io
 class OCRProcessor:
     def __init__(self):
         self.ocr_available = False
-        self._check_ocr()
+        self.tesseract_path = None
+        self.tessdata_dir = None
+        self._find_tesseract()
     
-    def _check_ocr(self):
-        """Proverit dostupnost OCR"""
-        try:
-            import pytesseract
-            pytesseract.get_tesseract_version()
-            self.ocr_available = True
-            print("Tesseract OCR: OK")
-            return
-        except Exception:
-            pass
+    def _find_tesseract(self):
+        """Nayti Tesseract na sisteme"""
+        import os
         
-        try:
-            import easyocr
-            print("Zagruzka EasyOCR modeley...")
-            self.easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False, verbose=False)
-            self.ocr_available = True
-            print("EasyOCR: OK")
-            return
-        except Exception as e:
-            print(f"EasyOCR ne dostupen: {e}")
+        possible_paths = [
+            r"C:\Program Files\Tesseract-OCR",
+            r"C:\Tesseract",
+            r"C:\Program Files (x86)\Tesseract-OCR",
+        ]
         
-        self.ocr_available = False
-        print("OCR ne ustanovlen. Tekst ne budet raspoznan.")
+        for base_path in possible_paths:
+            tesseract_exe = os.path.join(base_path, "tesseract.exe")
+            if os.path.exists(tesseract_exe):
+                self.tesseract_path = tesseract_exe
+                self.tesseract_dir = base_path
+                
+                self.tessdata_dir = os.path.join(base_path, "tessdata")
+                
+                tessdata_project = os.path.join(os.path.dirname(__file__), "tessdata")
+                if os.path.exists(os.path.join(tessdata_project, "rus.traineddata")):
+                    self.tessdata_dir = tessdata_project
+                
+                os.environ["PATH"] = base_path + os.pathsep + os.environ.get("PATH", "")
+                os.environ["TESSDATA_PREFIX"] = self.tessdata_dir
+                
+                self.ocr_available = True
+                print(f"Tesseract found: {tesseract_exe}")
+                return
+        
+        print("Tesseract ne najden. Skachayte: https://github.com/UB-Mannheim/tesseract/releases")
     
     def extract_text_from_image(self, image_path: str) -> str:
         """Izвлечь текст iz izobrazheniya"""
@@ -44,30 +53,39 @@ class OCRProcessor:
             return f"Fayl ne najden: {image_path}"
         
         try:
-            if not self.ocr_available:
+            if not self.tesseract_path:
                 return self._get_install_instructions()
             
-            try:
-                import pytesseract
-                image = Image.open(image_path)
-                text = pytesseract.image_to_string(image, lang='rus+eng', config='--psm 6')
-                return text.strip()
-            except Exception:
-                pass
+            import subprocess
             
-            try:
-                import easyocr
-                if not hasattr(self, 'easyocr_reader'):
-                    self.easyocr_reader = easyocr.Reader(['ru', 'en'], gpu=False, verbose=False)
-                
-                results = self.easyocr_reader.readtext(image_path)
-                texts = [text for (bbox, text, confidence) in results if confidence > 0.3]
-                return "\n".join(texts) if texts else "[Tekst ne najden]"
-            except Exception as e:
-                return f"Oshibka OCR: {str(e)}"
+            tessdata_dir = self.tessdata_dir.replace("\\", "/") if self.tessdata_dir else ""
+            
+            cmd = [
+                self.tesseract_path,
+                image_path.replace("\\", "/"),
+                "stdout",
+                "--tessdata-dir", tessdata_dir,
+                "--oem", "3",
+                "--psm", "6",
+                "-l", "rus+eng"
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                timeout=60,
+                encoding='utf-8',
+                errors='ignore'
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                return result.stdout.strip()
+            else:
+                error_msg = result.stderr.decode('utf-8', errors='ignore') if result.stderr else ""
+                return f"Oshibka Tesseract: {error_msg}"
             
         except Exception as e:
-            return f"Oshibka: {str(e)}"
+            return f"Oshibka OCR: {str(e)}"
     
     def _get_install_instructions(self) -> str:
         """Poluchit instrukcii po ustanovke OCR"""
